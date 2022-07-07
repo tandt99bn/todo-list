@@ -1,7 +1,7 @@
 export class TaskModel {
   id: string;
   title: string;
-  dueDate: Date;
+  dueDate: string;
   description: string;
   priority: string;
 
@@ -11,7 +11,7 @@ export class TaskModel {
 }
 
 export enum TaskPriorityEnum {
-  LOW = "low",
-  NORMAL = "normal",
-  HIGH = "high",
+  LOW = 'low',
+  NORMAL = 'normal',
+  HIGH = 'high',
 }

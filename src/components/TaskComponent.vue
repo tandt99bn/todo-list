@@ -72,8 +72,8 @@
 }
 </style>
 <script lang="ts">
-import { TaskModel, TaskPriorityEnum } from "@/models/task.model";
-import { defineComponent, reactive } from "vue";
+import { TaskModel, TaskPriorityEnum } from '@/models/task.model';
+import { defineComponent, reactive } from 'vue';
 class TaskComponentData {
   modelValue: TaskModel;
 }
@@ -81,13 +81,13 @@ class TaskComponentProps {
   modelValue: TaskModel;
 }
 const TASK_PRIORITY: any = [
-  { key: "LOW", name: "Low" },
-  { key: "NORMAL", name: "Normal" },
-  { key: "HIGH", name: "High" },
+  { key: 'LOW', name: 'Low' },
+  { key: 'NORMAL', name: 'Normal' },
+  { key: 'HIGH', name: 'High' },
 ];
 
 export default defineComponent({
-  name: "TaskComponent",
+  name: 'TaskComponent',
   components: {},
   props: {
     modelValue: {
@@ -98,10 +98,13 @@ export default defineComponent({
   },
   setup(props: TaskComponentProps) {
     const data = reactive<TaskComponentData>({
-      modelValue: { ...props.modelValue },
+      modelValue: {
+        ...props.modelValue,
+      },
     });
 
     const formData = reactive({
+      id: '',
       title: data.modelValue.title,
       description: data.modelValue.description,
       dueDate: data.modelValue.dueDate,
@@ -109,16 +112,16 @@ export default defineComponent({
     });
     const handleId = (tasks: TaskModel[]) => {
       tasks.forEach((item, index) => {
-        item.id = "task-" + index;
+        item.id = 'task-' + index;
       });
     };
     const onSubmit = () => {
       let localItems!: string | null;
-      localItems = localStorage.getItem("task");
+      localItems = localStorage.getItem('task');
       const tasks = localItems !== null ? JSON.parse(localItems) : [];
       tasks.push(formData);
       handleId(tasks);
-      localStorage.setItem("task", JSON.stringify(tasks));
+      localStorage.setItem('task', JSON.stringify(tasks));
     };
     return {
       formData,

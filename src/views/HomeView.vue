@@ -12,11 +12,11 @@
 }
 </style>
 <script lang="ts">
-import TaskComponent from "@/components/TaskComponent.vue"; // @ is an alias to /src
-import { defineComponent, reactive } from "vue";
+import TaskComponent from '@/components/TaskComponent.vue'; // @ is an alias to /src
+import { defineComponent, reactive } from 'vue';
 
 export default defineComponent({
-  name: "HomeView",
+  name: 'HomeView',
   components: { TaskComponent },
 
   setup(props) {
