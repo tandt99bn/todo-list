@@ -1,8 +1,7 @@
 <template>
   <div class="task">
-    <div class="header">New Task</div>
+    <div class="header" v-if="!isEdit">New Task</div>
     <div class="content">
-      <input class="id" v-model="formData.id" hidden />
       <input
         class="title"
         v-model="formData.title"
@@ -28,35 +27,52 @@
         </select>
       </div>
     </div>
-    <div class="action"><button @click="onSubmit">Add</button></div>
+    <div class="action">
+      <button @click="onUpdate" v-if="isEdit" class="btn-update">Update</button>
+      <button @click="onSubmit" v-else class="btn-add">Add</button>
+    </div>
+  </div>
+  <div class="message-error" :class="[data.isValidateDate ? 'show' : '']">
+    Ngày không được nhỏ hơn hiện tại
   </div>
 </template>
+
 <style scoped>
 .task {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  align-items: center;
   gap: 20px;
-  min-width: 0;
-  word-wrap: break-word;
   background-color: #fff;
   background-clip: border-box;
   border: 1px solid rgba(0, 0, 0, 0.125);
   border-radius: 0.25rem;
   padding: 20px;
 }
+.header {
+  font: normal 36px 'Open Sans', cursive;
+}
 .content {
   display: flex;
   flex-direction: column;
+  width: 95%;
   gap: 20px;
 }
 .title,
 .description,
 .date-picker,
 .option {
-  padding: 5px 10px;
+  font: normal 36px 'Open Sans', cursive;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 110%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
 }
-.title {
-}
+
 .description {
   height: 150px;
   resize: horizontal;
@@ -70,24 +86,107 @@
 .option {
   width: 45%;
 }
+.btn-update,
+.btn-add {
+  font: normal 36px 'Open Sans', cursive;
+  font-weight: 700;
+  font-size: 13px;
+  line-height: 110%;
+  text-align: center;
+  text-transform: uppercase;
+  border: none;
+  width: 183px !important;
+  height: 34px !important;
+  background: #04c35c;
+  color: #ffffff;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.message-error {
+  visibility: hidden;
+  min-width: 250px;
+  margin-left: -125px;
+  background-color: rgb(221, 14, 14);
+  color: #fff;
+  text-align: center;
+  border-radius: 2px;
+  padding: 16px;
+  position: fixed;
+  z-index: 1;
+  left: 50%;
+  bottom: 30px;
+  font-size: 17px;
+}
+
+.message-error.show {
+  visibility: visible;
+  -webkit-animation: fadein 0.5s, fadeout 0.5s 2.5s;
+  animation: fadein 0.5s, fadeout 0.5s 2.5s;
+}
+@-webkit-keyframes fadein {
+  from {
+    bottom: 0;
+    opacity: 0;
+  }
+  to {
+    bottom: 30px;
+    opacity: 1;
+  }
+}
+
+@keyframes fadein {
+  from {
+    bottom: 0;
+    opacity: 0;
+  }
+  to {
+    bottom: 30px;
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes fadeout {
+  from {
+    bottom: 30px;
+    opacity: 1;
+  }
+  to {
+    bottom: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes fadeout {
+  from {
+    bottom: 30px;
+    opacity: 1;
+  }
+  to {
+    bottom: 0;
+    opacity: 0;
+  }
+}
 </style>
 <script lang="ts">
-import { TaskModel, TaskPriorityEnum } from "@/models/task.model";
-import { defineComponent, reactive } from "vue";
+import { TaskModel, TaskPriorityEnum } from '@/models/task.model';
+import { computed, defineComponent, onMounted, reactive, watch } from 'vue';
 class TaskComponentData {
   modelValue: TaskModel;
+  isEdit: boolean;
+  isValidateDate: boolean;
 }
 class TaskComponentProps {
   modelValue: TaskModel;
+  isEdit: boolean;
 }
 const TASK_PRIORITY: any = [
-  { key: "LOW", name: "Low" },
-  { key: "NORMAL", name: "Normal" },
-  { key: "HIGH", name: "High" },
+  { key: 'LOW', name: 'Low' },
+  { key: 'NORMAL', name: 'Normal' },
+  { key: 'HIGH', name: 'High' },
 ];
 
 export default defineComponent({
-  name: "TaskComponent",
+  name: 'TaskComponent',
   components: {},
   props: {
     modelValue: {
@@ -95,36 +194,63 @@ export default defineComponent({
       default: null,
       required: true,
     },
+    isEdit: {
+      type: Boolean,
+      default: false,
+    },
   },
-  setup(props: TaskComponentProps) {
+  emits: ['onSubmit', 'onUpdate'],
+  setup(props: TaskComponentProps, { emit }) {
+    const today = new Date().toLocaleDateString('en-CA');
     const data = reactive<TaskComponentData>({
-      modelValue: { ...props.modelValue },
+      modelValue: {
+        ...props.modelValue,
+      },
+      isEdit: props.isEdit,
+      isValidateDate: false,
+    });
+    const formData = reactive({
+      id: data.modelValue.id ?? '',
+      title: data.modelValue.title ?? '',
+      description: data.modelValue.description ?? '',
+      dueDate: data.modelValue.dueDate ?? today,
+      priority: data.modelValue.priority ?? TaskPriorityEnum.NORMAL,
     });
 
-    const formData = reactive({
-      title: data.modelValue.title,
-      description: data.modelValue.description,
-      dueDate: data.modelValue.dueDate,
-      priority: data.modelValue.priority,
-    });
-    const handleId = (tasks: TaskModel[]) => {
-      tasks.forEach((item, index) => {
-        item.id = "task-" + index;
-      });
-    };
     const onSubmit = () => {
-      let localItems!: string | null;
-      localItems = localStorage.getItem("task");
-      const tasks = localItems !== null ? JSON.parse(localItems) : [];
-      tasks.push(formData);
-      handleId(tasks);
-      localStorage.setItem("task", JSON.stringify(tasks));
+      if (
+        new Date(formData.dueDate) <
+        new Date(new Date().toLocaleDateString('en-CA'))
+      ) {
+        data.isValidateDate = true;
+        setTimeout(function () {
+          data.isValidateDate = false;
+        }, 3000);
+      } else {
+        emit('onSubmit', formData);
+      }
+    };
+    const onUpdate = () => {
+      if (
+        new Date(formData.dueDate) <
+        new Date(new Date().toLocaleDateString('en-CA'))
+      ) {
+        data.isValidateDate = true;
+        setTimeout(function () {
+          data.isValidateDate = false;
+        }, 3000);
+      } else {
+        emit('onUpdate', formData);
+      }
     };
     return {
       formData,
       TaskPriorityEnum,
       TASK_PRIORITY,
+      data,
+      today,
       onSubmit,
+      onUpdate,
     };
   },
 });
