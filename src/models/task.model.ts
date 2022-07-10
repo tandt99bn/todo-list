@@ -11,7 +11,7 @@ export class TaskModel {
 }
 
 export enum TaskPriorityEnum {
-  LOW = 'low',
-  NORMAL = 'normal',
-  HIGH = 'high',
+  LOW = 'Low',
+  NORMAL = 'Normal',
+  HIGH = 'High',
 }
